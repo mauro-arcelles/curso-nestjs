@@ -1,12 +1,14 @@
 import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, Param, Get, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
 import { FilesService } from './files.service';
 import { fileFilter } from './helpers/file-filter.helper';
 import { fileNamer } from './helpers/file-namer.helper copy';
 
+@ApiTags('Files - Get and Upload')
 @Controller('files')
 export class FilesController {
   constructor(
@@ -15,10 +17,7 @@ export class FilesController {
   ) { }
 
   @Get('product/:imageName')
-  findProductImage(
-    @Res() res: Response,
-    @Param('imageName') imageName: string
-  ) {
+  findProductImage(@Res() res: Response,@Param('imageName') imageName: string ) {
 
     const path = this.filesService.getStaticProductImage(imageName);
 

@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Body, UseGuards, Req, SetMetadata } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { Auth } from './decorators/auth.decorator';
 import { GetUser } from './decorators/get-user.decorator';
 import { RawHeaders } from './decorators/raw-headers.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from './entities/user.entity';
-import { UserRoleGuard } from './guards/user-role.guard';
+import { ValidRoles } from './interfaces/valid-roles.interface';
 
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
@@ -23,6 +26,12 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
+  @Get('check-status')
+  @Auth()
+  checkAuthStatus(@GetUser() user: User) {
+    return this.authService.checkAuthStatus(user);
+  }
+
   @Get('private')
   @UseGuards(AuthGuard())
   testingPrivateRoute(@Req() request: Express.Request, @GetUser() user: User, @GetUser('email') userEmail: string, @RawHeaders() rawHeaders: string[]) {
@@ -30,8 +39,14 @@ export class AuthController {
   }
 
   @Get('private2')
-  @SetMetadata('roles', ['admin', 'super-user'])
-  @UseGuards(AuthGuard(), UserRoleGuard)
+  // Primera forma de agregarle metadata en el request
+  // @SetMetadata('roles', ['admin', 'super-user'])
+
+  // Segunda forma de agregarle metadata en el request (a traves de custom decorator)
+  // @RoleProtected(ValidRoles.superUser)
+
+  // @UseGuards(AuthGuard(), UserRoleGuard)
+  @Auth(ValidRoles.admin)
   privateRoute2(@GetUser() user: User) {
     return { user };
   }
